@@ -22,7 +22,7 @@ import {
   AdminLogin,
   AdminLogout
 } from "../screens";
-import { Icon } from "react-native-elements";
+import { Icon } from "../components/rne";
 import { TouchableOpacity, Alert } from "react-native";
 import { createDrawerNavigator, DrawerItems } from "react-navigation-drawer";
 import { ScrollView } from "react-native-gesture-handler";

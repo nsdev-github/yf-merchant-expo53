@@ -5,13 +5,12 @@ import {
   ScrollView,
   Dimensions,
   KeyboardAvoidingView,
-  ActivityIndicator,
   Pressable
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Styles } from "../components";
+import { Styles, WebLoading } from "../components";
 import { Image } from "react-native";
-import { Input, Button, Overlay } from "react-native-elements";
+import { Input, Button } from "../components/rne";
 import { checkCode } from "../redux/actions";
 import { useDispatch, useSelector } from "react-redux";
 import { getUser } from "../redux/selector";
@@ -39,13 +38,8 @@ export const Login = ({ navigation }) => {
   };
 
   useEffect(() => {
-    setShow(false);
     const { user, loading, error, admin } = userState;
-    if (loading) {
-      setShow(true);
-    } else {
-      setShow(false);
-    }
+    setShow(loading);
 
     if (error) {
       setError(error);
@@ -137,25 +131,9 @@ export const Login = ({ navigation }) => {
               />
             </View>
           </View>
-          {
-            show && (
-              // <Overlay overlayStyle={{ backgroundColor: 'transparent' }} isVisible={show}>
-              
-              // </Overlay>
-                <View
-                  style={{
-                    flex: 1,
-                    justifyContent: "center",
-                    alignItems: "center", position: 'absolute', backgroundColor: '#000',opacity:0.5, left: 0, right: 0, top: 0, bottom: 0
-                  }}
-                >
-                  <ActivityIndicator size="large" color="#fff" />
-                </View>
-            )
-          }
-
         </ScrollView>
       </KeyboardAvoidingView>
+      {show && <WebLoading />}
     </SafeAreaView>
   );
 };

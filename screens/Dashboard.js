@@ -13,7 +13,7 @@ import { Styles } from "../components";
 import { Camera, CameraView, useCameraPermissions } from "expo-camera";
 import { MaterialIcons } from "@react-native-vector-icons/material-icons";
 import Modal from "react-native-modal";
-import { Button, Icon } from "react-native-elements";
+import { Button, Icon } from "../components/rne";
 import { useSelector, useDispatch } from "react-redux";
 import { getCard } from "../redux/selector";
 import { fetchCard } from "../redux/actions";

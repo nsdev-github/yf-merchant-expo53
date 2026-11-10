@@ -12,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Styles, Picker as MultiPick } from "../components";
 import {Picker} from '@react-native-picker/picker';
 
-import { Input, Button } from "react-native-elements";
+import { Input, Button } from "../components/rne";
 import { useSelector, useDispatch } from "react-redux";
 import {
   getUser,

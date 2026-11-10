@@ -1,11 +1,9 @@
-import React, { useEffect } from "react";
-import { View, Text, ActivityIndicator, Dimensions } from "react-native";
+import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch } from "react-redux";
 import { LOGOUT_USER } from "../redux/constant";
 import WebView from "react-native-webview";
-
-const { width, height } = Dimensions.get("screen");
+import { WebLoading } from "../components";
 
 export const AdminLogout = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -21,22 +19,6 @@ export const AdminLogout = ({ navigation }) => {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <View
-        style={{
-          width,
-          height,
-          justifyContent: "center",
-          alignItems: "center"
-        }}
-      >
-        <ActivityIndicator
-          size="small"
-          color="#F250A9"
-          style={{ marginBottom: 8 }}
-        />
-        <Text>Please Wait...</Text>
-      </View>
-
       <WebView
         source={{ uri }}
         style={{
@@ -44,6 +26,7 @@ export const AdminLogout = ({ navigation }) => {
         }}
         onLoadProgress={logoutUser}
       />
+      <WebLoading />
     </SafeAreaView>
   );
 };

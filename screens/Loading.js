@@ -2,7 +2,8 @@ import React, { useEffect } from "react";
 import { View, ActivityIndicator } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import { getUser } from "../redux/selector";
-import * as Linking from 'expo-linking';
+import * as Linking from "expo-linking";
+import { parseAdminLoginCallback } from "../components/WebLoading";
 
 import * as Types from "../redux/constant";
 
@@ -12,11 +13,10 @@ export const Loading = ({ navigation }) => {
 
   useEffect(() => {
 
-    Linking.addEventListener("url", event => {
-      const data = Linking.parse(event.url);
-
-      if (data.queryParams.code) {
-        dispatch({ type: Types.SET_AS_ADMIN, payload: data.queryParams });
+    const subscription = Linking.addEventListener("url", event => {
+      const params = parseAdminLoginCallback(event.url);
+      if (params) {
+        dispatch({ type: Types.SET_AS_ADMIN, payload: params });
         navigation.navigate("Admin");
       }
     });
@@ -30,9 +30,7 @@ export const Loading = ({ navigation }) => {
     }
     navigation.navigate(navigate);
 
-    return () => {
-      Linking.removeListener("url");
-    };
+    return () => subscription.remove();
   }, []);
 
   return (

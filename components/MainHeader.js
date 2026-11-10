@@ -1,19 +1,29 @@
 import React from "react";
 import { View, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Icon } from "react-native-elements";
+import { Icon } from "./rne";
 
-export const MainHeader = ({ navigation }) => {
+export const MainHeader = ({ navigation, showBack = false }) => {
   const insets = useSafeAreaInsets();
+
+  const onLeadingPress = () => {
+    if (showBack) {
+      navigation.goBack();
+      return;
+    }
+    if (navigation.openDrawer) {
+      navigation.openDrawer();
+    }
+  };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <TouchableOpacity
-        onPress={() => navigation.openDrawer()}
+        onPress={onLeadingPress}
         style={styles.side}
         hitSlop={8}
       >
-        <Icon name="menu" color="#fff" />
+        <Icon name={showBack ? "arrow-back" : "menu"} color="#fff" />
       </TouchableOpacity>
       <View style={styles.center}>
         <Image

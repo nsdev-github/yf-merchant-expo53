@@ -19,8 +19,7 @@ export default function App() {
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
           <StatusBar barStyle="light-content" />
-          <Text style={{ color: "#fff", fontSize: 24, textAlign: "center" }}>JI</Text>
-          {/* <Navigation /> */}
+          <Navigation />
         </PersistGate>
       </Provider>
     </SafeAreaProvider>

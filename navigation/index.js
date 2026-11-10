@@ -27,7 +27,7 @@ import {
     AdminLogin,
     AdminLogout
   } from "../screens";
-  import { Button, Icon } from "react-native-elements";
+  import { Icon } from "../components/rne";
   
 import { Styles, WebLoading, MainHeader } from "../components";
   
@@ -88,18 +88,23 @@ if(user){
    
   };
 
-const AdminDrawNavigator =() =>{
+const adminScreenHeader = navigation => (
+  <MainHeader navigation={navigation} />
+);
+
+const AdminDrawNavigator = () => {
  return(
-    <Drawer.Navigator 
-    screenOptions={{
+    <Drawer.Navigator
+    initialRouteName="Admin-dashoard"
+    screenOptions={({ navigation }) => ({
       headerShown: false,
       drawerPosition: "left",
       drawerType: "front",
       drawerStyle: {
         width: "75%",
       },
-    }}
-      
+      header: () => adminScreenHeader(navigation),
+    })}
     drawerContent={CustomDrawer}
     >
          <Drawer.Screen
@@ -114,8 +119,7 @@ const AdminDrawNavigator =() =>{
         component={Dashboard}
         options={{
           title: "Scan",
-          headerShown:true,
-          header:({ navigation })=>(<MainHeader {...{ navigation }} />)
+          headerShown: true,
         }}
       />
       <Drawer.Screen
@@ -125,8 +129,7 @@ const AdminDrawNavigator =() =>{
         { 
         drawerLabel: ()=>null,
         drawerItemStyle: { display: "none" },
-        headerShown:true,
-        header:({ navigation })=>(<MainHeader {...{ navigation }} />)
+        headerShown: true,
       }
     }
     />
@@ -137,8 +140,7 @@ const AdminDrawNavigator =() =>{
       { 
       drawerLabel: ()=>null,
       drawerItemStyle: { display: "none" },
-      headerShown:true,
-      header:({ navigation })=>(<MainHeader {...{ navigation }} />)
+      headerShown: true,
     }
   }
   />
@@ -239,22 +241,19 @@ const AppAuthStackNavigator = () => {
   };
 
 export default function App() {
-    
-    const { user, admin } = useSelector(getUser);
+  const { user, admin } = useSelector(getUser);
 
-    if(admin){
-        return (
-            <NavigationContainer>
-              <AdminDrawNavigator />
-           </NavigationContainer>
-          );
-    }  
-    return (
-          <NavigationContainer>
-             {user ? <AppStackNavigator/> : <AppAuthStackNavigator />}
-         </NavigationContainer>
-    )
+  const navKey = admin ? "admin" : user ? "merchant" : "auth";
 
-    
-    
-  }
+  return (
+    <NavigationContainer key={navKey}>
+      {admin ? (
+        <AdminDrawNavigator />
+      ) : user ? (
+        <AppStackNavigator />
+      ) : (
+        <AppAuthStackNavigator />
+      )}
+    </NavigationContainer>
+  );
+}
