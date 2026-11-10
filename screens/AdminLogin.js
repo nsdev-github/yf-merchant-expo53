@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, SafeAreaView, StatusBar, Platform } from "react-native";
+import { View, Text } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Styles, WebLoading } from "../components";
 import { WebView } from "react-native-webview";
 import * as Linking from 'expo-linking'
@@ -63,7 +64,6 @@ const onMessage = (payload) => {
         {
           flex: 1,
           backgroundColor: "#343A40",
-          paddingTop: Platform.OS === "android" ? 25 : 0,
           paddingHorizontal: 0
         }
       ]}

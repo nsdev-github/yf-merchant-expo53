@@ -1,0 +1,6 @@
+{
+  "name": "react-native-vector-icons",
+  "version": "11.0.0",
+  "description": "Local shim forwarding to @react-native-vector-icons/* packages",
+  "private": true
+}

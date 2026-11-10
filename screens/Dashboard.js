@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import {
   View,
-  SafeAreaView,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -9,9 +8,10 @@ import {
   ActivityIndicator,
   Platform
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Styles } from "../components";
 import { Camera, CameraView, useCameraPermissions } from "expo-camera";
-import { MaterialIcons } from "@expo/vector-icons";
+import { MaterialIcons } from "@react-native-vector-icons/material-icons";
 import Modal from "react-native-modal";
 import { Button, Icon } from "react-native-elements";
 import { useSelector, useDispatch } from "react-redux";
@@ -118,12 +118,7 @@ export const Dashboard = ({ navigation }) => {
 
 
   return (
-    <SafeAreaView
-      style={[
-        Styles.GLOBAL_BG,
-        { flex: 1, paddingTop: Platform.OS === "android" ? 25 : 0 }
-      ]}
-    >
+    <SafeAreaView style={[Styles.GLOBAL_BG, { flex: 1 }]}>
       <ScrollView
         contentContainerStyle={[
           Styles.wrapper,

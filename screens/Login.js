@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
   View,
-  SafeAreaView,
   Text,
   ScrollView,
   Dimensions,
@@ -9,6 +8,7 @@ import {
   ActivityIndicator,
   Pressable
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Styles } from "../components";
 import { Image } from "react-native";
 import { Input, Button, Overlay } from "react-native-elements";
@@ -60,7 +60,7 @@ export const Login = ({ navigation }) => {
 
   // console.log(width);
   return (
-    <SafeAreaView style={[Styles.droidSafeArea, Styles.GLOBAL_BG, { flex: 1 }]}>
+    <SafeAreaView style={[Styles.GLOBAL_BG, { flex: 1 }]}>
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
         <ScrollView contentContainerStyle={[Styles.wrapper, { flex: 1 }]}>

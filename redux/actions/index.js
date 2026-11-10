@@ -16,6 +16,24 @@ import Axios from "axios";
 
 const source = Axios.CancelToken.source();
 
+const getRequestErrorMessage = (error, fallback) => {
+  const data = error?.response?.data;
+
+  if (typeof data === "string" && data.trim()) {
+    return data;
+  }
+
+  if (data?.message) {
+    return data.message;
+  }
+
+  if (!error?.response && error?.message === "Network Error") {
+    return "Unable to reach the server. On web this is often blocked by CORS because the API does not allow the apiKey header.";
+  }
+
+  return error?.message || fallback;
+};
+
 export const checkCode = code => dispatch => {
   dispatch({ type: CHECKING_CODE });
 
@@ -31,14 +49,14 @@ export const checkCode = code => dispatch => {
       } else {
         dispatch({
           type: CODE_INVALID,
-          payload: "Invalid Staff Code"
+          payload: data.message || "Invalid Staff Code"
         });
       }
     })
     .catch(e => {
       dispatch({
         type: CODE_INVALID,
-        payload: e.response.data
+        payload: getRequestErrorMessage(e, "Unable to verify staff code")
       });
     });
 };
@@ -95,7 +113,7 @@ export const addDiscountDB = usermeta => dispatch => {
       }
     })
     .catch(e => {
-      console.log(e.response.data);
+      console.log(getRequestErrorMessage(e, "Unable to set discount"));
     });
 };
 

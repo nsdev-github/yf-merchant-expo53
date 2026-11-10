@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, BackHandler, SafeAreaView, Platform, Pressable } from "react-native";
+import { View, Text, BackHandler, Platform, Pressable } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Icon } from "react-native-elements";
 import { Styles } from "../components";
 import Device from "react-native-device-detection";

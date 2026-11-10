@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
-import { View, Text, SafeAreaView, StatusBar, Platform } from "react-native";
-import { Styles, WebLoading, MainHeader } from "../components";
+import { View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { WebLoading, MainHeader } from "../components";
 import { WebView } from "react-native-webview";
 import { webScript, HistoryButton, API_URI } from "../components/WebLoading";
 import { useDispatch } from "react-redux";
@@ -24,7 +25,7 @@ export const AdminDashboard = ({ navigation }) => {
   return (
     <View style={{ flex: 1 }}>
       <MainHeader {...{ navigation }} />
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeAreaView style={{ flex: 1 }} edges={["bottom", "left", "right"]}>
         <WebView
           ref={web}
           style={{ flex: 1 }}

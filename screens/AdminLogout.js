@@ -1,11 +1,6 @@
 import React, { useEffect } from "react";
-import {
-  View,
-  Text,
-  ActivityIndicator,
-  SafeAreaView,
-  Dimensions
-} from "react-native";
+import { View, Text, ActivityIndicator, Dimensions } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch } from "react-redux";
 import { LOGOUT_USER } from "../redux/constant";
 import WebView from "react-native-webview";

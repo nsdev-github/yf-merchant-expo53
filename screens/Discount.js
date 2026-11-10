@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   View,
-  SafeAreaView,
   Image,
   ScrollView,
   Text,
@@ -9,6 +8,7 @@ import {
   Alert,
   ActivityIndicator
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Styles, Picker as MultiPick } from "../components";
 import {Picker} from '@react-native-picker/picker';
 

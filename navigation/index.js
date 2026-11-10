@@ -1,5 +1,5 @@
 import React from "react";
-import { Text, View, Image, StyleSheet, Platform,ScrollView } from "react-native";
+import { Text, View, Image, StyleSheet, ScrollView } from "react-native";
 
 import { NavigationContainer,createSwitchNavigator } from '@react-navigation/native';
 
@@ -50,9 +50,7 @@ if(user){
     return (
         <View style={{ flex: 1 }}>
           
-          <SafeAreaView
-            style={{ flex: 1, paddingTop: Platform.OS === "android" ? 25 : 0 }}
-          >
+          <SafeAreaView style={{ flex: 1 }}>
             <View
               style={{
                 width: "100%",
@@ -242,8 +240,7 @@ const AppAuthStackNavigator = () => {
 
 export default function App() {
     
-    const { user,admin } = useSelector(getUser);
-    console.log("admin",admin);
+    const { user, admin } = useSelector(getUser);
 
     if(admin){
         return (
