@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { View, Text, Platform } from "react-native";
+import { View, Text, Platform, BackHandler } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Styles, WebLoading, MainHeader } from "../components";
 import { Button } from "../components/rne";
@@ -31,6 +31,11 @@ export const AdminLogin = ({ navigation }) => {
   useEffect(() => {
     dispatch({ type: LOGOUT_USER });
   }, [dispatch]);
+
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener("hardwareBackPress", () => true);
+    return () => subscription.remove();
+  }, []);
 
  
   useEffect(() => {
@@ -110,7 +115,7 @@ export const AdminLogin = ({ navigation }) => {
 
   return (
     <View style={{ flex: 1, backgroundColor: "#343A40" }}>
-      <MainHeader navigation={navigation} showBack />
+      <MainHeader navigation={navigation} hideLeading />
       <SafeAreaView
         style={{ flex: 1 }}
         edges={["bottom", "left", "right"]}

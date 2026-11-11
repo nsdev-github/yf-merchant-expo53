@@ -7,7 +7,7 @@ import {
   TouchableOpacity
 } from "react-native";
 import { Icon } from "./rne";
-import Fancy from "react-native-modal";
+import Fancy from "@gadhiyamanan/react-native-modal";
 import { height } from "./Style";
 import Device from "react-native-device-detection";
 

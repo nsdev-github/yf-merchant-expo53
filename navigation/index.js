@@ -193,7 +193,11 @@ const AppAuthStackNavigator = () => {
     return (
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Login" component={Login} />
-        <Stack.Screen name="AdminLogin" component={AdminLogin} />
+        <Stack.Screen
+          name="AdminLogin"
+          component={AdminLogin}
+          options={{ gestureEnabled: false }}
+        />
       <Stack.Screen name="Loading" component={Loading} />
       </Stack.Navigator>
     );
@@ -222,7 +226,6 @@ const AppAuthStackNavigator = () => {
               name="log-out-outline"
               type="ionicon"
               color="#fff"
-              iconStyle={{ marginRight: 16 }}
             />
           </TouchableOpacity>
         ),
