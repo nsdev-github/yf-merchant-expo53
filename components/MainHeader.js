@@ -3,7 +3,12 @@ import { View, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Icon } from "./rne";
 
-export const MainHeader = ({ navigation, showBack = false, hideLeading = false }) => {
+export const MainHeader = ({
+  navigation,
+  showBack = false,
+  hideLeading = false,
+  hideLogo = false,
+}) => {
   const insets = useSafeAreaInsets();
 
   const onLeadingPress = () => {
@@ -30,10 +35,12 @@ export const MainHeader = ({ navigation, showBack = false, hideLeading = false }
         </TouchableOpacity>
       )}
       <View style={styles.center}>
-        <Image
-          source={require("../assets/logo/logo.png")}
-          style={styles.logo}
-        />
+        {!hideLogo && (
+          <Image
+            source={require("../assets/logo/logo.png")}
+            style={styles.logo}
+          />
+        )}
       </View>
       <View style={styles.side} />
     </View>

@@ -20,7 +20,7 @@ export const Password = ({ navigation }) => {
 
   return (
     <View style={{ flex: 1 }}>
-      <MainHeader {...{ navigation }} />
+      <MainHeader navigation={navigation} hideLogo />
       <SafeAreaView style={{ flex: 1 }} edges={["bottom", "left", "right"]}>
         <WebView
           style={{ flex: 1 }}

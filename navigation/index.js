@@ -89,7 +89,7 @@ if(user){
   };
 
 const adminScreenHeader = navigation => (
-  <MainHeader navigation={navigation} />
+  <MainHeader navigation={navigation} hideLogo />
 );
 
 const AdminDrawNavigator = () => {
@@ -193,11 +193,7 @@ const AppAuthStackNavigator = () => {
     return (
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Login" component={Login} />
-        <Stack.Screen
-          name="AdminLogin"
-          component={AdminLogin}
-          options={{ gestureEnabled: false }}
-        />
+        <Stack.Screen name="AdminLogin" component={AdminLogin} />
       <Stack.Screen name="Loading" component={Loading} />
       </Stack.Navigator>
     );
