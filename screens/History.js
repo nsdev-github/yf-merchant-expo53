@@ -21,7 +21,7 @@ export const History = ({ navigation }) => {
 
   return (
     <View style={{ flex: 1 }}>
-      <MainHeader navigation={navigation} hideLogo />
+      <MainHeader navigation={navigation} />
       <SafeAreaView style={{ flex: 1 }} edges={["bottom", "left", "right"]}>
         <WebView
           ref={web}
@@ -29,8 +29,12 @@ export const History = ({ navigation }) => {
           source={{
             uri: "https://members.yourfitster.com/history"
           }}
+          injectedJavaScriptBeforeContentLoaded={webScript}
           injectedJavaScript={webScript}
           javaScriptEnabled
+          domStorageEnabled
+          sharedCookiesEnabled
+          thirdPartyCookiesEnabled
           bounces={false}
           showsVerticalScrollIndicator={false}
           onNavigationStateChange={handleHistory}

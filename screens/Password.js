@@ -20,15 +20,19 @@ export const Password = ({ navigation }) => {
 
   return (
     <View style={{ flex: 1 }}>
-      <MainHeader navigation={navigation} hideLogo />
+      <MainHeader navigation={navigation} />
       <SafeAreaView style={{ flex: 1 }} edges={["bottom", "left", "right"]}>
         <WebView
           style={{ flex: 1 }}
           source={{
             uri: "https://members.yourfitster.com/profile"
           }}
+          injectedJavaScriptBeforeContentLoaded={webScript}
           injectedJavaScript={webScript}
           javaScriptEnabled
+          domStorageEnabled
+          sharedCookiesEnabled
+          thirdPartyCookiesEnabled
           bounces={false}
           onNavigationStateChange={handleHistory}
           showsVerticalScrollIndicator={false}

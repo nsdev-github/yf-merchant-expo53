@@ -13,6 +13,7 @@ export const AdminLogout = ({ navigation }) => {
   const logoutUser = ({ nativeEvent }) => {
     if (nativeEvent.progress === 1) {
       dispatch({ type: LOGOUT_USER });
+      console.log("admin logout");
       // navigation.navigate("Loading");
     }
   };
@@ -22,7 +23,7 @@ export const AdminLogout = ({ navigation }) => {
       <WebView
         source={{ uri }}
         style={{
-          display: "none"
+          display: "none",
         }}
         onLoadProgress={logoutUser}
       />

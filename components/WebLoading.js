@@ -80,6 +80,27 @@ export function parseAdminLoginCallback(url) {
   return parsed.queryParams;
 }
 
+/** Members pages reached only after a successful admin login. */
+export function isAuthenticatedMembersUrl(url) {
+  if (!url || url.includes("admin-login")) {
+    return false;
+  }
+
+  let parsed;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return false;
+  }
+
+  if (parsed.hostname !== "members.yourfitster.com") {
+    return false;
+  }
+
+  const path = parsed.pathname.replace(/\/+$/, "") || "/";
+  return path !== "/" && path !== "/login" && !path.startsWith("/password");
+}
+
 
 export const HistoryButton = ({ onPress }) => (
   <TouchableOpacity
@@ -110,8 +131,30 @@ export const HistoryButton = ({ onPress }) => (
   </TouchableOpacity>
 );
 
-export const webScript =
-  "document.querySelector('.app-nav').style.display = 'none'; document.querySelector('.breadcrumb').style.display = 'none';document.querySelector('.main-wrapper').style.paddingTop = '16px'";
+const hideWebChrome = selectors => `
+(function () {
+  var css = '${selectors}{display:none!important}.main-wrapper{padding-top:16px!important}';
+  var apply = function () {
+    var root = document.head || document.documentElement;
+    if (!root || document.getElementById('yf-hide-web-header')) return;
+    var style = document.createElement('style');
+    style.id = 'yf-hide-web-header';
+    style.appendChild(document.createTextNode(css));
+    root.appendChild(style);
+  };
+  apply();
+  document.addEventListener('DOMContentLoaded', apply);
+})();
+true;
+`;
+
+/** Hide the members-site header; the app already shows a native bar. */
+export const webScript = hideWebChrome(".app-nav,.navbar,.breadcrumb");
+
+/** Login page also shows the site logo above the form. */
+export const loginWebScript = hideWebChrome(
+  ".app-nav,.navbar,.breadcrumb,.main-logo"
+);
 
 export const Greet = () => {
   const time = new Date().getHours();

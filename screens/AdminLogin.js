@@ -7,7 +7,12 @@ import { WebView } from "react-native-webview";
 import * as Linking from "expo-linking";
 import { useDispatch, useSelector } from "react-redux";
 import { LOGOUT_USER, SET_AS_ADMIN } from "../redux/constant";
-import { AUTH_URI, parseAdminLoginCallback } from "../components/WebLoading";
+import {
+  AUTH_URI,
+  isAuthenticatedMembersUrl,
+  loginWebScript,
+  parseAdminLoginCallback,
+} from "../components/WebLoading";
 
 const TRANSIENT_WEBVIEW_ERRORS = [
   "ERR_NETWORK_CHANGED",
@@ -40,7 +45,10 @@ export const AdminLogin = ({ navigation }) => {
       const params = parseAdminLoginCallback(event.url);
       if (params) {
         authHandledRef.current = true;
-        dispatch({ type: SET_AS_ADMIN, payload: params });
+        dispatch({
+          type: SET_AS_ADMIN,
+          payload: { name: "Admin", ...params },
+        });
       }
     });
 
@@ -55,9 +63,17 @@ export const AdminLogin = ({ navigation }) => {
       const params = parseAdminLoginCallback(url);
       if (params) {
         authHandledRef.current = true;
-        dispatch({ type: SET_AS_ADMIN, payload: params });
+        dispatch({
+          type: SET_AS_ADMIN,
+          payload: { name: "Admin", ...params },
+        });
         setLoading(false);
         return false;
+      }
+      if (isAuthenticatedMembersUrl(url)) {
+        authHandledRef.current = true;
+        dispatch({ type: SET_AS_ADMIN, payload: { name: "Admin" } });
+        setLoading(false);
       }
       return true;
     },
@@ -128,6 +144,8 @@ export const AdminLogin = ({ navigation }) => {
         {...(Platform.OS === "android"
           ? { mixedContentMode: "compatibility", androidLayerType: "hardware" }
           : {})}
+        injectedJavaScriptBeforeContentLoaded={loginWebScript}
+        injectedJavaScript={loginWebScript}
         bounces={false}
         showsVerticalScrollIndicator={false}
         onShouldStartLoadWithRequest={request => handleAuthRedirect(request.url)}

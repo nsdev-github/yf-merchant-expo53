@@ -10,7 +10,8 @@
         "gradleCommand": ":app:assembleDebug"
       },
       "ios": {
-        "buildConfiguration": "Debug"
+        "buildConfiguration": "Debug",
+        "credentialsSource": "remote"
       }
     },
     "preview": {
@@ -21,6 +22,13 @@
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "ascAppId": "1497852941",
+        "ascApiKeyPath": "./credentials/AuthKey_AZ6UZ6QGUV.p8",
+        "ascApiKeyIssuerId": "f30520cd-6f2c-4d3f-b3cc-6ce1a226ff95",
+        "ascApiKeyId": "AZ6UZ6QGUV"
+      }
+    }
   }
 }
