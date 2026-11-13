@@ -47,9 +47,6 @@ export const Login = ({ navigation }) => {
       return;
     }
 
-    if (user) {
-      navigation.navigate(admin ? "Admin" : "Home");
-    }
   }, [userState]);
 
   // console.log(width);

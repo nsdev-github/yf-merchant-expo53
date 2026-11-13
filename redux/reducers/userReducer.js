@@ -1,4 +1,3 @@
-import { REHYDRATE } from "redux-persist";
 import * as Types from "../constant";
 
 const initialState = {
@@ -27,13 +26,6 @@ export const userReducer = (state = initialState, action) => {
 
     case Types.LOGOUT_ADMIN:
       return { user: null, loading: false, error: "", admin: false };
-
-    case REHYDRATE:
-      return {
-        ...state,
-        loading: false,
-        error: "",
-      };
 
     default:
       return state;

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   View,
   ScrollView,
@@ -45,6 +45,7 @@ export const Dashboard = ({ navigation }) => {
   const [showModal, setShowModal] = useState(false);
 
   const dispatch = useDispatch();
+  const scanInFlightRef = useRef(false);
 
   const cardState = useSelector(getCard);
 
@@ -82,40 +83,28 @@ export const Dashboard = ({ navigation }) => {
     requestPermission();
   })
 
-  const barCodeScanned = ({ data }) => {
-    // setScanned(true);
-    console.log("trig");
+  const resetScan = useCallback(() => {
+    scanInFlightRef.current = false;
+    setScanned(false);
+  }, []);
 
-    let code = data.split("/");
-    code = code[code.length - 1];
-
-    dispatch(fetchCard(code));
-
-
-    setShowModal(true);
-  };
+  const barCodeScanned = useCallback(
+    ({ data }) => {
+      if (scanInFlightRef.current) {
+        return;
+      }
+      scanInFlightRef.current = true;
+      setScanned(true);
+      console.log("fetch card for", data);
+      dispatch(fetchCard(data));
+      setShowModal(true);
+    },
+    [dispatch]
+  );
 
   const toggleFlash = () => {
     setFlash(flash => flashModeOrder[flash]);
   };
-
-  if (error) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text
-          style={{
-            marginVertical: 8,
-            fontWeight: "bold",
-            fontSize: 16,
-            color: "#333"
-          }}
-        >
-          Problem in connection, Please try again later
-        </Text>
-      </View>
-    );
-  }
-
 
   return (
     <SafeAreaView style={[Styles.GLOBAL_BG, { flex: 1 }]}>
@@ -199,7 +188,7 @@ export const Dashboard = ({ navigation }) => {
                 zoom={0}
                 autoFocus="on"
                 barcodeScannerSettings={{ barcodeTypes: ["qr", "pdf417"] }}
-                onBarcodeScanned={barCodeScanned}
+                onBarcodeScanned={scanned ? undefined : barCodeScanned}
               />
 
 
@@ -240,14 +229,14 @@ export const Dashboard = ({ navigation }) => {
           backdropTransitionOutTiming={600}
           onBackButtonPress={() => {
             setShowModal(false);
-            setScanned(false);
+            resetScan();
           }}
           useNativeDriver
         >
           <View
             style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
           >
-            {loading || card == null ? (
+            {loading ? (
               <View
                 style={{
                   width: Devices.isTablet ? "75%" : width - 100,
@@ -274,7 +263,29 @@ export const Dashboard = ({ navigation }) => {
                   }}
                 />
               </View>
-            ) : (
+            ) : error ? (
+              <View
+                style={{
+                  width: Devices.isTablet ? "75%" : width - 100,
+                  padding: 24,
+                  backgroundColor: "#fff",
+                  borderRadius: 8,
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ textAlign: "center", marginBottom: 16, color: "#333" }}>
+                  {error}
+                </Text>
+                <Button
+                  title="Close"
+                  onPress={() => {
+                    setShowModal(false);
+                    resetScan();
+                  }}
+                  buttonStyle={{ backgroundColor: "#F250A9" }}
+                />
+              </View>
+            ) : card ? (
               <View style={Styles.modalWrapper}>
                 <View
                   style={{
@@ -322,7 +333,7 @@ export const Dashboard = ({ navigation }) => {
                     }}
                     onPress={() => {
                       setShowModal(false);
-                      setScanned(true);
+                      resetScan();
                     }}
                   >
 
@@ -364,13 +375,13 @@ export const Dashboard = ({ navigation }) => {
                     buttonStyle={{ backgroundColor: "#F250A9" }}
                     onPress={() => {
                       setShowModal(false);
-                      setScanned(false);
+                      resetScan();
                       navigation.navigate("Discount", { usermeta: card });
                     }}
                   />
                 </View>
               </View>
-            )}
+            ) : null}
           </View>
         </Modal>
       </ScrollView>

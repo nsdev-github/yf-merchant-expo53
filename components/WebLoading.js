@@ -58,6 +58,34 @@ export const AUTH_URI = `https://members.yourfitster.com/login?redirect=${encode
   redirectUri
 )}&app=true`;
 
+function firstQueryValue(value) {
+  if (Array.isArray(value)) {
+    return value[0];
+  }
+  if (value == null || value === "") {
+    return undefined;
+  }
+  return String(value);
+}
+
+/** Redux admin user shape from callback query or WebView profile scrape. */
+export function buildAdminUserPayload(raw = {}) {
+  const name =
+    firstQueryValue(
+      raw.name ?? raw.display_name ?? raw.username ?? raw.user_name
+    ) || "Admin";
+  const image =
+    firstQueryValue(
+      raw.image ?? raw.avatar ?? raw.photo ?? raw.profile_image ?? raw.picture
+    ) || "";
+  const code = firstQueryValue(raw.code);
+  const payload = { ...raw, name, image };
+  if (code) {
+    payload.code = code;
+  }
+  return payload;
+}
+
 /** OAuth callback after members site login (WebView cannot load custom schemes). */
 export function parseAdminLoginCallback(url) {
   if (!url || !url.includes("admin-login")) {
@@ -65,20 +93,83 @@ export function parseAdminLoginCallback(url) {
   }
 
   const parsed = Linking.parse(url);
+  const scheme = parsed.scheme ?? "";
   const isAppScheme =
-    parsed.scheme === "yourfitster-merchant" || parsed.scheme === "exp";
+    scheme === "yourfitster-merchant" ||
+    scheme === "exp" ||
+    scheme.startsWith("exp+");
 
   if (!isAppScheme) {
     return null;
   }
 
-  const { code } = parsed.queryParams ?? {};
+  const queryParams = { ...(parsed.queryParams ?? {}) };
+  const code = firstQueryValue(queryParams.code);
   if (!code) {
-    return null;
+    const match = String(url).match(/[?&]code=([^&#]+)/i);
+    if (!match) {
+      return null;
+    }
+    queryParams.code = decodeURIComponent(match[1]);
   }
 
-  return parsed.queryParams;
+  return buildAdminUserPayload(queryParams);
 }
+
+/** Read display name + avatar from the members site after in-WebView login. */
+export const membersProfileExtractionScript = `
+(function () {
+  function pickText(el) {
+    return el ? String(el.textContent || "").trim() : "";
+  }
+  function absUrl(src) {
+    if (!src) return "";
+    if (/^https?:/i.test(src)) return src;
+    return window.location.origin + (src.startsWith("/") ? src : "/" + src);
+  }
+  var name = "";
+  var image = "";
+  var nameSelectors = [
+    ".user-profile .name",
+    ".user-name",
+    ".profile-name",
+    ".dropdown-user .name",
+    "header .username",
+    "[class*='user-name']",
+    "[class*='profile-name']"
+  ];
+  for (var i = 0; i < nameSelectors.length; i++) {
+    var label = pickText(document.querySelector(nameSelectors[i]));
+    if (label) {
+      name = label;
+      break;
+    }
+  }
+  var imageSelectors = [
+    ".user-profile img",
+    ".profile-image img",
+    ".avatar img",
+    "img.avatar",
+    ".dropdown-user img",
+    "header .user img",
+    "[class*='avatar'] img"
+  ];
+  for (var j = 0; j < imageSelectors.length; j++) {
+    var img = document.querySelector(imageSelectors[j]);
+    if (img && img.src) {
+      image = absUrl(img.src);
+      break;
+    }
+  }
+  if (!name) {
+    name = "Admin";
+  }
+  window.ReactNativeWebView.postMessage(
+    JSON.stringify({ type: "yfAdminProfile", name: name, image: image })
+  );
+})();
+true;
+`;
 
 /** Members pages reached only after a successful admin login. */
 export function isAuthenticatedMembersUrl(url) {

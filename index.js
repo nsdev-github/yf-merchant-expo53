@@ -1,3 +1,4 @@
+import "react-native-gesture-handler";
 import "./reanimatedSetup";
 import { registerRootComponent } from "expo";
 

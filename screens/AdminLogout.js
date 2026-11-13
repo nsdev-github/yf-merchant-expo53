@@ -1,33 +1,26 @@
-import React from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
+import React, { useEffect } from "react";
+import { View } from "react-native";
 import { useDispatch } from "react-redux";
-import { LOGOUT_USER } from "../redux/constant";
 import WebView from "react-native-webview";
-import { WebLoading } from "../components";
+import { LOGOUT_USER } from "../redux/constant";
+const MEMBERS_LOGOUT_URI = "https://members.yourfitster.com/api-logout";
 
-export const AdminLogout = ({ navigation }) => {
+export const AdminLogout = () => {
   const dispatch = useDispatch();
 
-  const uri = "https://members.yourfitster.com/api-logout";
-
-  const logoutUser = ({ nativeEvent }) => {
-    if (nativeEvent.progress === 1) {
-      dispatch({ type: LOGOUT_USER });
-      console.log("admin logout");
-      // navigation.navigate("Loading");
-    }
-  };
+  useEffect(() => {
+    dispatch({ type: LOGOUT_USER });
+  }, [dispatch]);
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <View style={{ width: 0, height: 0, overflow: "hidden" }} pointerEvents="none">
       <WebView
-        source={{ uri }}
-        style={{
-          display: "none",
-        }}
-        onLoadProgress={logoutUser}
+        source={{ uri: MEMBERS_LOGOUT_URI }}
+        javaScriptEnabled
+        domStorageEnabled
+        sharedCookiesEnabled
+        thirdPartyCookiesEnabled
       />
-      <WebLoading />
-    </SafeAreaView>
+    </View>
   );
 };

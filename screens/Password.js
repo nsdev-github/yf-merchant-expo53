@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { WebLoading, MainHeader } from "../components";
 import { WebView } from "react-native-webview";
 import { webScript, API_URI } from "../components/WebLoading";
-import { LOGOUT_ADMIN } from "../redux/constant";
+import { LOGOUT_USER } from "../redux/constant";
 
 export const Password = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
@@ -12,8 +12,7 @@ export const Password = ({ navigation }) => {
 
   const handleHistory = ({ canGoBack, url }) => {
     if (url === API_URI) {
-      dispatch({ type: LOGOUT_ADMIN });
-      navigation.navigate("Loading");
+      dispatch({ type: LOGOUT_USER });
     }
     setHistory(canGoBack);
   };

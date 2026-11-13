@@ -3,7 +3,10 @@ import { View, ActivityIndicator } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import { getUser } from "../redux/selector";
 import * as Linking from "expo-linking";
-import { parseAdminLoginCallback } from "../components/WebLoading";
+import {
+  buildAdminUserPayload,
+  parseAdminLoginCallback,
+} from "../components/WebLoading";
 
 import * as Types from "../redux/constant";
 
@@ -16,7 +19,10 @@ export const Loading = ({ navigation }) => {
     const subscription = Linking.addEventListener("url", event => {
       const params = parseAdminLoginCallback(event.url);
       if (params) {
-        dispatch({ type: Types.SET_AS_ADMIN, payload: params });
+        dispatch({
+          type: Types.SET_AS_ADMIN,
+          payload: buildAdminUserPayload(params),
+        });
         navigation.navigate("Admin");
       }
     });

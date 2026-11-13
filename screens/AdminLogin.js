@@ -9,8 +9,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { LOGOUT_USER, SET_AS_ADMIN } from "../redux/constant";
 import {
   AUTH_URI,
+  buildAdminUserPayload,
   isAuthenticatedMembersUrl,
   loginWebScript,
+  membersProfileExtractionScript,
   parseAdminLoginCallback,
 } from "../components/WebLoading";
 
@@ -23,61 +25,151 @@ const TRANSIENT_WEBVIEW_ERRORS = [
 ];
 
 const MAX_AUTO_RETRIES = 3;
+const MEMBERS_LOGOUT_URI = "https://members.yourfitster.com/api-logout";
 
 export const AdminLogin = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
+  const [webSource, setWebSource] = useState({ uri: MEMBERS_LOGOUT_URI });
   const dispatch = useDispatch();
-  const { admin } = useSelector(state => state.user);
+  const { admin, user: merchantUser } = useSelector(state => state.user);
   const authHandledRef = useRef(false);
   const webViewRef = useRef(null);
   const retryCountRef = useRef(0);
+  const pendingProfileRef = useRef(false);
+  const profilePartialRef = useRef(null);
+  const membersSessionClearedRef = useRef(false);
+  const hasSeenLoginPageRef = useRef(false);
 
   useEffect(() => {
-    dispatch({ type: LOGOUT_USER });
-  }, [dispatch]);
+    authHandledRef.current = false;
+    pendingProfileRef.current = false;
+    profilePartialRef.current = null;
+    membersSessionClearedRef.current = false;
+    hasSeenLoginPageRef.current = false;
+    setWebSource({ uri: MEMBERS_LOGOUT_URI });
+    if (merchantUser && !admin) {
+      dispatch({ type: LOGOUT_USER });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reset session once per visit
+  }, []);
+
+  const completeAdminLogin = useCallback(
+    partial => {
+      if (authHandledRef.current) {
+        return;
+      }
+      authHandledRef.current = true;
+      pendingProfileRef.current = false;
+      dispatch({
+        type: SET_AS_ADMIN,
+        payload: buildAdminUserPayload(partial),
+      });
+      setLoading(false);
+    },
+    [dispatch]
+  );
+
+  const tryParseCallbackUrl = useCallback(url => {
+    const params = parseAdminLoginCallback(url);
+    if (params) {
+      return params;
+    }
+    if (/admin-login/i.test(url) && /[?&]code=/i.test(url)) {
+      return parseAdminLoginCallback(
+        url.replace(/^[^:]+:/i, "yourfitster-merchant:")
+      );
+    }
+    return null;
+  }, []);
+
+  const requestMembersProfile = useCallback(() => {
+    pendingProfileRef.current = true;
+    setTimeout(() => {
+      webViewRef.current?.injectJavaScript(membersProfileExtractionScript);
+    }, 400);
+  }, []);
 
   useEffect(() => {
     const subscription = Linking.addEventListener("url", event => {
       if (authHandledRef.current) {
         return;
       }
-      const params = parseAdminLoginCallback(event.url);
+      const params = tryParseCallbackUrl(event.url);
       if (params) {
-        authHandledRef.current = true;
-        dispatch({
-          type: SET_AS_ADMIN,
-          payload: { name: "Admin", ...params },
-        });
+        completeAdminLogin(params);
       }
     });
 
     return () => subscription.remove();
-  }, [dispatch]);
+  }, [completeAdminLogin, tryParseCallbackUrl]);
 
   const handleAuthRedirect = useCallback(
     url => {
       if (authHandledRef.current) {
         return true;
       }
-      const params = parseAdminLoginCallback(url);
+      if (
+        /members\.yourfitster\.com/i.test(url) &&
+        /\/login/i.test(url)
+      ) {
+        hasSeenLoginPageRef.current = true;
+      }
+      const params = tryParseCallbackUrl(url);
       if (params) {
-        authHandledRef.current = true;
-        dispatch({
-          type: SET_AS_ADMIN,
-          payload: { name: "Admin", ...params },
-        });
-        setLoading(false);
+        completeAdminLogin(params);
         return false;
       }
-      if (isAuthenticatedMembersUrl(url)) {
-        authHandledRef.current = true;
-        dispatch({ type: SET_AS_ADMIN, payload: { name: "Admin" } });
-        setLoading(false);
+      if (
+        hasSeenLoginPageRef.current &&
+        isAuthenticatedMembersUrl(url)
+      ) {
+        requestMembersProfile();
       }
       return true;
     },
-    [dispatch]
+    [completeAdminLogin, requestMembersProfile, tryParseCallbackUrl]
+  );
+
+  const onWebViewLoadEnd = useCallback(() => {
+    setLoading(false);
+    retryCountRef.current = 0;
+
+    if (
+      !membersSessionClearedRef.current &&
+      webSource.uri === MEMBERS_LOGOUT_URI
+    ) {
+      membersSessionClearedRef.current = true;
+      setWebSource({ uri: AUTH_URI });
+      setLoading(true);
+      return;
+    }
+
+    if (pendingProfileRef.current && !authHandledRef.current) {
+      webViewRef.current?.injectJavaScript(membersProfileExtractionScript);
+    }
+  }, [webSource.uri]);
+
+  const onWebViewMessage = useCallback(
+    event => {
+      if (!pendingProfileRef.current || authHandledRef.current) {
+        return;
+      }
+      try {
+        const data = JSON.parse(event.nativeEvent.data);
+        if (data?.type !== "yfAdminProfile") {
+          return;
+        }
+        completeAdminLogin({
+          ...(profilePartialRef.current ?? {}),
+          name: data.name,
+          image: data.image,
+        });
+      } catch {
+        // ignore non-JSON postMessage
+      }
+    },
+    [completeAdminLogin]
   );
 
   const scheduleRetry = useCallback(() => {
@@ -116,87 +208,91 @@ export const AdminLogin = ({ navigation }) => {
     retryCountRef.current = 0;
     setLoadError(null);
     setLoading(true);
-    webViewRef.current?.reload();
+    authHandledRef.current = false;
+    hasSeenLoginPageRef.current = false;
+    membersSessionClearedRef.current = false;
+    setWebSource({ uri: MEMBERS_LOGOUT_URI });
   }, []);
 
   if (admin) {
-    return null;
+    return (
+      <View style={{ flex: 1, backgroundColor: "#343A40" }}>
+        <WebLoading />
+      </View>
+    );
   }
 
   return (
     <View style={{ flex: 1, backgroundColor: "#343A40" }}>
       <MainHeader navigation={navigation} showBack hideLogo />
-      <SafeAreaView
-        style={{ flex: 1 }}
-        edges={["bottom", "left", "right"]}
-      >
-      <WebView
-        ref={webViewRef}
-        style={{ flex: 1 }}
-        source={{ uri: AUTH_URI }}
-        javaScriptEnabled
-        domStorageEnabled
-        sharedCookiesEnabled
-        thirdPartyCookiesEnabled
-        cacheEnabled
-        setSupportMultipleWindows={false}
-        originWhitelist={["https://*", "http://*", "yourfitster-merchant://*"]}
-        {...(Platform.OS === "android"
-          ? { mixedContentMode: "compatibility", androidLayerType: "hardware" }
-          : {})}
-        injectedJavaScriptBeforeContentLoaded={loginWebScript}
-        injectedJavaScript={loginWebScript}
-        bounces={false}
-        showsVerticalScrollIndicator={false}
-        onShouldStartLoadWithRequest={request => handleAuthRedirect(request.url)}
-        onNavigationStateChange={navState => {
-          handleAuthRedirect(navState.url);
-        }}
-        onLoadStart={() => {
-          setLoadError(null);
-          setLoading(true);
-        }}
-        onLoadEnd={() => {
-          setLoading(false);
-          retryCountRef.current = 0;
-        }}
-        onError={onWebViewError}
-        onRenderProcessGone={() => {
-          if (retryCountRef.current < MAX_AUTO_RETRIES) {
-            scheduleRetry();
-          } else {
-            setLoadError("Login page stopped responding. Tap Retry.");
-            setLoading(false);
+      <SafeAreaView style={{ flex: 1 }} edges={["bottom", "left", "right"]}>
+        <WebView
+          ref={webViewRef}
+          style={{ flex: 1 }}
+          source={webSource}
+          javaScriptEnabled
+          domStorageEnabled
+          sharedCookiesEnabled
+          thirdPartyCookiesEnabled
+          cacheEnabled
+          setSupportMultipleWindows={false}
+          originWhitelist={["https://*", "http://*", "yourfitster-merchant://*"]}
+          {...(Platform.OS === "android"
+            ? { mixedContentMode: "compatibility", androidLayerType: "hardware" }
+            : {})}
+          injectedJavaScriptBeforeContentLoaded={loginWebScript}
+          injectedJavaScript={loginWebScript}
+          bounces={false}
+          showsVerticalScrollIndicator={false}
+          onShouldStartLoadWithRequest={request =>
+            handleAuthRedirect(request.url)
           }
-          return true;
-        }}
-      />
-      {loadError && (
-        <View
-          style={{
-            ...Styles.wrapper,
-            position: "absolute",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            top: 0,
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor: "#343A40",
-            paddingHorizontal: 24,
+          onNavigationStateChange={navState => {
+            handleAuthRedirect(navState.url);
           }}
-        >
-          <Text style={{ color: "#fff", textAlign: "center", marginBottom: 16 }}>
-            {loadError}
-          </Text>
-          <Button
-            title="Retry"
-            onPress={onRetry}
-            buttonStyle={[Styles.GLOBAL_BG_COLOR, { paddingHorizontal: 32 }]}
-          />
-        </View>
-      )}
-      {loading && !loadError && <WebLoading />}
+          onLoadStart={() => {
+            setLoadError(null);
+            setLoading(true);
+          }}
+          onMessage={onWebViewMessage}
+          onLoadEnd={onWebViewLoadEnd}
+          onError={onWebViewError}
+          onRenderProcessGone={() => {
+            if (retryCountRef.current < MAX_AUTO_RETRIES) {
+              scheduleRetry();
+            } else {
+              setLoadError("Login page stopped responding. Tap Retry.");
+              setLoading(false);
+            }
+            return true;
+          }}
+        />
+        {loadError && (
+          <View
+            style={{
+              ...Styles.wrapper,
+              position: "absolute",
+              left: 0,
+              right: 0,
+              bottom: 0,
+              top: 0,
+              justifyContent: "center",
+              alignItems: "center",
+              backgroundColor: "#343A40",
+              paddingHorizontal: 24,
+            }}
+          >
+            <Text style={{ color: "#fff", textAlign: "center", marginBottom: 16 }}>
+              {loadError}
+            </Text>
+            <Button
+              title="Retry"
+              onPress={onRetry}
+              buttonStyle={[Styles.GLOBAL_BG_COLOR, { paddingHorizontal: 32 }]}
+            />
+          </View>
+        )}
+        {loading && !loadError && <WebLoading />}
       </SafeAreaView>
     </View>
   );
